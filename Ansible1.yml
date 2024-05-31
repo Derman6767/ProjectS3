@@ -1,0 +1,82 @@
+---
+- name: Maak VM vanuit template
+  hosts: localhost
+  gather_facts: no
+
+  vars_files:
+    - credentials.yml
+
+  vars_prompt:
+    - name: "blade_choice"
+      prompt: "Choose the blade (7 or 10):"
+      private: no
+      choices:
+        - "7"
+        - "10"
+    - name: "phase_choice"
+      prompt: "Welke fase (O, T, A, P):"
+      private: no
+      choices:
+        - "O"
+        - "T"
+        - "A"
+        - "P"
+
+  tasks:
+    - name: Set vSphere UI link based on blade choice
+      set_fact:
+        vsphere_hostname: >-
+          {% if blade_choice == '7' %}
+          192.168.107.11
+          {% elif blade_choice == '10' %}
+          192.168.110.11
+          {% endif %}
+        blade: "{{ blade_choice }}"
+        folder_name: >-
+          {% if phase_choice == 'O' %}
+          1-O
+          {% elif phase_choice == 'T' %}
+          2-T
+          {% elif phase_choice == 'A' %}
+          3-A
+          {% elif phase_choice == 'P' %}
+          4-P
+          {% endif %}
+
+    - name: Create first VM from Ubuntu template
+      vmware_guest:
+        hostname: "{{ vsphere_hostname }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "SRV-API-{{ phase_choice }}{{ blade }}"
+        template: "ubuntu-server"
+        datacenter: "Datacenter"
+        folder: "OTAP/{{ folder_name }}"
+        resource_pool: "Resources"
+        cluster: "Cluster"
+        state: "poweredon"
+        wait_for_ip_address: yes
+      register: vm_creation_result1
+
+    - name: Create second VM from Ubuntu template
+      vmware_guest:
+        hostname: "{{ vsphere_hostname }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "SRV-DB-{{ phase_choice }}{{ blade }}"
+        template: "ubuntu-server"
+        datacenter: "Datacenter"
+        folder: "OTAP/{{ folder_name }}"
+        resource_pool: "Resources"
+        cluster: "Cluster"
+        state: "poweredon"
+        wait_for_ip_address: yes
+      register: vm_creation_result2
+
+    - name: Display the IP addresses of the new VMs
+      debug:
+        msg: >
+          The new VM SRV-API-{{ phase_choice }}{{ blade }} has IP address {{ vm_creation_result1.instance.hw_eth0.ipaddresses[0] }},
+          and the new VM SRV-DB-{{ phase_choice }}{{ blade }} has IP address {{ vm_creation_result2.instance.hw_eth0.ipaddresses[0] }}
