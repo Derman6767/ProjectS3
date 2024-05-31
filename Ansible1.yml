@@ -8,7 +8,7 @@
 
   vars_prompt:
     - name: "blade_choice"
-      prompt: "Choose the blade (7 or 10):"
+      prompt: "Blade 7 of Blade 10?"
       private: no
       choices:
         - "7"
@@ -27,9 +27,9 @@
       set_fact:
         vsphere_hostname: >-
           {% if blade_choice == '7' %}
-          192.168.107.11
+          https://192.168.107.11
           {% elif blade_choice == '10' %}
-          192.168.110.11
+          https://192.168.110.11
           {% endif %}
         blade: "{{ blade_choice }}"
         folder_name: >-
@@ -68,7 +68,7 @@
         name: "SRV-DB-{{ phase_choice }}{{ blade }}"
         template: "ubuntu-server"
         datacenter: "Datacenter"
-        folder: "OTAP/{{ folder_name }}"
+        folder: "OTAP/{{ folder_name }}"l
         resource_pool: "Resources"
         cluster: "Cluster"
         state: "poweredon"
