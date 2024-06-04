@@ -6,56 +6,44 @@
   vars_files:
     - credentials.yml
 
-  vars:
-    blade_choice: 7  # Default value for Blade choice
-    phase_choice: O  # Default value for Phase choice
-
   tasks:
-    # Option 1: Using validate_certs with a list of valid options
-    # - name: Get Blade Choice (Option 1: Using validate_certs)
-    #   set_fact:
-    #     blade_choice: "{{ query('Blade 7 of Blade 10?', choices=['7', '10'], validate_certs: '^[7|10]$') }}"
-    #
-    # - name: Get Phase Choice (Option 1: Using validate_certs)
-    #   set_fact:
-    #     phase_choice: "{{ query('Welke fase (O, T, A, P):', choices=['O', 'T', 'A', 'P'], validate_certs: '^[O|T|A|P]$') }}"
-
-    # Option 2: Using a loop with conditional statements
-    - name: Get Blade Choice (Option 2: Using a loop with conditional statements)
+    # Get Blade and Fase variables from run command
+    - name: Get Blade variable
       set_fact:
-        blade_choice: "{{ query('Blade 7 of Blade 10?', choices=['7', '10']) }}"
+        blade: "{{ (ansible_env.Blade) | default('7') }}"  # Set default value if not provided
 
-    - name: Get Phase Choice (Option 2: Using a loop with conditional statements)
+    - name: Get Fase variable
       set_fact:
-        phase_choice: "{{ query('Welke fase (O, T, A, P):', choices=['O', 'T', 'A', 'P']) }}"
+        fase: "{{ (ansible_env.Fase) | default('O') }}"  # Set default value if not provided
 
+    # Set vSphere UI link based on blade choice
     - name: Set vSphere UI link based on blade choice
       set_fact:
         vsphere_hostname: >-
-          {% if blade_choice == '7' %}
+          {% if blade == '7' %}
           https://192.168.107.11
-          {% elif blade_choice == '10' %}
+          {% elif blade == '10' %}
           https://192.168.110.11
           {% endif %}
-        blade: "{{ blade_choice }}"
         folder_name: >-
-          {% if phase_choice == 'O' %}
+          {% if fase == 'O' %}
           1-O
-          {% elif phase_choice == 'T' %}
+          {% elif fase == 'T' %}
           2-T
-          {% elif phase_choice == 'A' %}
+          {% elif fase == 'A' %}
           3-A
-          {% elif phase_choice == 'P' %}
+          {% elif fase == 'P' %}
           4-P
           {% endif %}
 
+    # Create first VM from Ubuntu template
     - name: Create first VM from Ubuntu template
       vmware_guest:
         hostname: "{{ vsphere_hostname }}"
         username: "{{ vmware_username }}"
         password: "{{ vmware_password }}"
         validate_certs: False
-        name: "SRV-API-{{ phase_choice }}{{ blade }}"
+        name: "SRV-API-{{ fase }}{{ blade }}"
         template: "ubuntu-server"
         datacenter: "Datacenter"
         folder: "OTAP/{{ folder_name }}"
@@ -65,13 +53,14 @@
         wait_for_ip_address: yes
         register: vm_creation_result1
 
+    # Create second VM from Ubuntu template
     - name: Create second VM from Ubuntu template
       vmware_guest:
         hostname: "{{ vsphere_hostname }}"
         username: "{{ vmware_username }}"
         password: "{{ vmware_password }}"
         validate_certs: False
-        name: "SRV-DB-{{ phase_choice }}{{ blade }}"
+        name: "SRV-DB-{{ fase }}{{ blade }}"
         template: "ubuntu-server"
         datacenter: "Datacenter"
         folder: "OTAP/{{ folder_name }}"
@@ -81,12 +70,18 @@
         wait_for_ip_address: yes
         register: vm_creation_result2
 
+    # Display the IP addresses of the new VMs
     - name: Display the IP addresses of the new VMs
       debug:
         msg: >
-          The new VM SRV-API-{{ phase_choice }}{{ blade }} has IP address {{ vm_creation_result1.instance.hw_eth0.ipaddresses[0] }},
-          and the new VM SRV-DB-{{ phase_choice }}{{ blade }} has IP address {{ vm_creation_result2.instance.hw_eth0.ipaddresses[0] }}
+          The new VM SRV-API-{{ fase }}{{ blade }} has IP address {{ vm_creation_result1.instance.hw_eth0.ipaddresses[0] }},
+          and the new VM SRV-DB-{{ fase }}{{ blade }} has IP address {{ vm_creation_result2.instance.hw_eth0.ipaddresses[0] }}
 
-**Remember to replace `credentials.yml` with the actual path to your credential file and choose the option (commented out or active) that best suits your needs.**
+**Remember to replace `credentials.yml` with the actual path to your credential file.**
 
-This code ensures that all lines are indented correctly (two
+In this updated code, the `Blade` and `Fase` variables are retrieved from the `ansible_env` dictionary using the `set_fact` tasks. The `default` filter ensures that default values are set if the variables are not provided during playbook execution.
+
+To run this playbook, you'll need to pass the `Blade` and `Fase` values using the `-e` option:
+
+```bash
+ansible-playbook playbook.yml -e "Blade=10 Fase=P"
