@@ -25,6 +25,14 @@
           {% elif blade == '10' %}
           https://192.168.110.11
           {% endif %}
+
+        vsphere_resourcepool: >-
+          {% if blade == '7' %}
+          https://192.168.107.9
+          {% elif blade == '10' %}
+          https://192.168.110.9
+          {% endif %}
+
         folder_name: >-
           {% if fase == 'O' %}
           1-O
@@ -47,11 +55,10 @@
         template: "ubuntu-server"
         datacenter: "Datacenter"
         folder: "OTAP/{{ folder_name }}"
-        resource_pool: "Resources"
+        resource_pool: "{{ vsphere_resourcepool }}"
         cluster: "Cluster"
         state: "poweredon"
         wait_for_ip_address: yes
-        register: vm_creation_result1
 
     # Create second VM from Ubuntu template
     - name: Create second VM from Ubuntu template
@@ -64,11 +71,10 @@
         template: "ubuntu-server"
         datacenter: "Datacenter"
         folder: "OTAP/{{ folder_name }}"
-        resource_pool: "Resources"
+        resource_pool: "{{ vsphere_resourcepool }}"
         cluster: "Cluster"
         state: "poweredon"
         wait_for_ip_address: yes
-        register: vm_creation_result2
 
     # Display the IP addresses of the new VMs
     - name: Display the IP addresses of the new VMs
