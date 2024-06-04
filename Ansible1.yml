@@ -6,23 +6,31 @@
   vars_files:
     - credentials.yml
 
-  vars_prompt:
-    - name: "blade_choice"
-      prompt: "Blade 7 of Blade 10?"
-      private: no
-      choices:
-        - "7"
-        - "10"
-    - name: "phase_choice"
-      prompt: "Welke fase (O, T, A, P):"
-      private: no
-      choices:
-        - "O"
-        - "T"
-        - "A"
-        - "P"
+  vars:
+    blade_choice: 7  # Default value for Blade choice
+    phase_choice: O  # Default value for Phase choice
 
   tasks:
+    # Get Blade Choice (Option 1: Using validate_certs)
+    # - name: Get Blade Choice (Option 1: Using validate_certs)
+    #   set_fact:
+    #     blade_choice: "{{ query('Blade 7 of Blade 10?', choices=['7', '10'], validate_certs: '^[7|10]$') }}"
+
+    # Get Phase Choice (Option 1: Using validate_certs)
+    # - name: Get Phase Choice (Option 1: Using validate_certs)
+    #   set_fact:
+    #     phase_choice: "{{ query('Welke fase (O, T, A, P):', choices=['O', 'T', 'A', 'P'], validate_certs: '^[O|T|A|P]$') }}"
+
+    # Get Blade Choice (Option 2: Using a loop with conditional statements)
+    - name: Get Blade Choice (Option 2: Using a loop with conditional statements)
+      set_fact:
+        blade_choice: "{{ query('Blade 7 of Blade 10?', choices=['7', '10']) }}"
+
+    # Get Phase Choice (Option 2: Using a loop with conditional statements)
+    - name: Get Phase Choice (Option 2: Using a loop with conditional statements)
+      set_fact:
+        phase_choice: "{{ query('Welke fase (O, T, A, P):', choices=['O', 'T', 'A', 'P']) }}"
+
     - name: Set vSphere UI link based on blade choice
       set_fact:
         vsphere_hostname: >-
@@ -57,7 +65,7 @@
         cluster: "Cluster"
         state: "poweredon"
         wait_for_ip_address: yes
-      register: vm_creation_result1
+        register: vm_creation_result1
 
     - name: Create second VM from Ubuntu template
       vmware_guest:
@@ -68,12 +76,12 @@
         name: "SRV-DB-{{ phase_choice }}{{ blade }}"
         template: "ubuntu-server"
         datacenter: "Datacenter"
-        folder: "OTAP/{{ folder_name }}"l
+        folder: "OTAP/{{ folder_name }}"
         resource_pool: "Resources"
         cluster: "Cluster"
         state: "poweredon"
         wait_for_ip_address: yes
-      register: vm_creation_result2
+        register: vm_creation_result2
 
     - name: Display the IP addresses of the new VMs
       debug:
