@@ -11,22 +11,20 @@
     phase_choice: O  # Default value for Phase choice
 
   tasks:
-    # Get Blade Choice (Option 1: Using validate_certs)
+    # Option 1: Using validate_certs with a list of valid options
     # - name: Get Blade Choice (Option 1: Using validate_certs)
     #   set_fact:
     #     blade_choice: "{{ query('Blade 7 of Blade 10?', choices=['7', '10'], validate_certs: '^[7|10]$') }}"
-
-    # Get Phase Choice (Option 1: Using validate_certs)
+    #
     # - name: Get Phase Choice (Option 1: Using validate_certs)
     #   set_fact:
     #     phase_choice: "{{ query('Welke fase (O, T, A, P):', choices=['O', 'T', 'A', 'P'], validate_certs: '^[O|T|A|P]$') }}"
 
-    # Get Blade Choice (Option 2: Using a loop with conditional statements)
+    # Option 2: Using a loop with conditional statements
     - name: Get Blade Choice (Option 2: Using a loop with conditional statements)
       set_fact:
         blade_choice: "{{ query('Blade 7 of Blade 10?', choices=['7', '10']) }}"
 
-    # Get Phase Choice (Option 2: Using a loop with conditional statements)
     - name: Get Phase Choice (Option 2: Using a loop with conditional statements)
       set_fact:
         phase_choice: "{{ query('Welke fase (O, T, A, P):', choices=['O', 'T', 'A', 'P']) }}"
@@ -88,3 +86,5 @@
         msg: >
           The new VM SRV-API-{{ phase_choice }}{{ blade }} has IP address {{ vm_creation_result1.instance.hw_eth0.ipaddresses[0] }},
           and the new VM SRV-DB-{{ phase_choice }}{{ blade }} has IP address {{ vm_creation_result2.instance.hw_eth0.ipaddresses[0] }}
+
+**Remember to replace `credentials.yml` with the actual path to your credential file and choose the option (commented out or active) that best suits your needs.**
