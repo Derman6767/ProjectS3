@@ -88,3 +88,5 @@
           and the new VM SRV-DB-{{ phase_choice }}{{ blade }} has IP address {{ vm_creation_result2.instance.hw_eth0.ipaddresses[0] }}
 
 **Remember to replace `credentials.yml` with the actual path to your credential file and choose the option (commented out or active) that best suits your needs.**
+
+This code ensures that all lines are indented correctly (two
