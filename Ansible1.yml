@@ -6,33 +6,51 @@
   vars_files:
     - credentials.yml
 
-  tasks:
-    # Get Blade and Fase variables from run command
-    - name: Get Blade variable
-      set_fact:
-        blade: "{{ (ansible_env.Blade) | default('7') }}"  # Set default value if not provided
+  vars:
+    blade: "{{ Blade | default('') }}"
+    fase: "{{ Fase | default('') }}"
 
-    - name: Get Fase variable
-      set_fact:
-        fase: "{{ (ansible_env.Fase) | default('O') }}"  # Set default value if not provided
+  tasks:
+    - name: Controleer of Blade variabele is opgegeven
+      fail:
+        msg: "De 'Blade' variabele is niet opgegeven!"
+      when: blade == ''
+
+    - name: Controleer of Fase variabele is opgegeven
+      fail:
+        msg: "De 'Fase' variabele is niet opgegeven!"
+      when: fase == ''
 
     # Set vSphere UI link based on blade choice
-    - name: Set vSphere UI link based on blade choice
+    - name: Verbind met vcenter op basis van blade keuze
       set_fact:
         vsphere_hostname: >-
           {% if blade == '7' %}
-          {{ 'https://192.168.107.11' | trim }}
+          192.168.107.11
           {% elif blade == '10' %}
-          {{ 'https://192.168.110.11' | trim }}
+          192.168.110.11
           {% endif %}
 
+    - name: Stel resource pool in op basis van blade keuze
+      set_fact:
         vsphere_resourcepool: >-
           {% if blade == '7' %}
-          {{ 'https://192.168.107.9' | trim }}
+          192.168.107.9
           {% elif blade == '10' %}
-          {{ 'https://192.168.110.9' | trim }}
+          192.168.110.9
           {% endif %}
 
+    - name: Stel datastore in op basis van bladekeuze
+      set_fact:
+        vsphere_datastore: >-
+          {% if blade == '7' %}
+          NAS_Blade7
+          {% elif blade == '10' %}
+          SAN_Blade10
+          {% endif %}
+
+    - name: Zet in map op basis van fase keuze
+      set_fact:
         folder_name: >-
           {% if fase == 'O' %}
           1-O
@@ -44,43 +62,50 @@
           4-P
           {% endif %}
 
+    - name: Stel tweede IP nummer in op basis van keuze
+      set_fact:
+        vsphere_TweedeIP: >-
+          {% if fase == 'O' %}
+          1
+          {% elif fase == 'T' %}
+          2
+          {% elif fase == 'A' %}
+          3
+          {% elif fase == 'P' %}
+          4
+          {% endif %}
+
     # Create first VM from Ubuntu template
-    - name: Create first VM from Ubuntu template
+    - name: Maak eerste VM (Ubuntu) vanuit Template
       vmware_guest:
-        hostname: "{{ vsphere_hostname }}"
+        hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
         password: "{{ vmware_password }}"
         validate_certs: False
         name: "SRV-API-{{ fase }}{{ blade }}"
-        template: "ubuntu-server"
+        template: "ubuntu-server-template"
         datacenter: "Datacenter"
-        folder: "OTAP/{{ folder_name }}"
-        resource_pool: "{{ vsphere_resourcepool }}"
-        cluster: "Cluster"
+        folder: "/OTAP/{{folder_name | trim}}"
+        datastore: "{{ vsphere_datastore | trim }}"
         state: "poweredon"
         wait_for_ip_address: yes
+      register: vm_creation_result1
 
     # Create second VM from Ubuntu template
-    - name: Create second VM from Ubuntu template
+    - name: Maak tweede VM (Ubuntu) vanuit template
       vmware_guest:
-        hostname: "{{ vsphere_hostname }}"
+        hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
         password: "{{ vmware_password }}"
         validate_certs: False
         name: "SRV-DB-{{ fase }}{{ blade }}"
-        template: "ubuntu-server"
+        template: "ubuntu-server-template"
         datacenter: "Datacenter"
-        folder: "OTAP/{{ folder_name }}"
-        resource_pool: "{{ vsphere_resourcepool }}"
-        cluster: "Cluster"
+        folder: "/OTAP/{{folder_name | trim}}"
+        datastore: "{{ vsphere_datastore | trim }}"
         state: "poweredon"
         wait_for_ip_address: yes
-
-    # Display the IP addresses of the new VMs
-    - name: Display the IP addresses of the new VMs
-      debug:
-        msg: >
-          The new VM SRV-API-{{ fase }}{{ blade }} has IP address {{ vm_creation_result1.instance.hw_eth0.ipaddresses[0] }},
-          and the new VM SRV-DB-{{ fase }}{{ blade }} has IP address {{ vm_creation_result2.instance.hw_eth0.ipaddresses[0] }}
-
+      register: vm_creation_result2
+      
+# command om uit te voeren
 # ansible-playbook playbook.yml -e "Blade=10 Fase=P"
