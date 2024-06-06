@@ -83,3 +83,4 @@
           The new VM SRV-API-{{ fase }}{{ blade }} has IP address {{ vm_creation_result1.instance.hw_eth0.ipaddresses[0] }},
           and the new VM SRV-DB-{{ fase }}{{ blade }} has IP address {{ vm_creation_result2.instance.hw_eth0.ipaddresses[0] }}
 
+# ansible-playbook playbook.yml -e "Blade=10 Fase=P"
