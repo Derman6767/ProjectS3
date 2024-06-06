@@ -83,11 +83,3 @@
           The new VM SRV-API-{{ fase }}{{ blade }} has IP address {{ vm_creation_result1.instance.hw_eth0.ipaddresses[0] }},
           and the new VM SRV-DB-{{ fase }}{{ blade }} has IP address {{ vm_creation_result2.instance.hw_eth0.ipaddresses[0] }}
 
-**Remember to replace `credentials.yml` with the actual path to your credential file.**
-
-In this updated code, the `Blade` and `Fase` variables are retrieved from the `ansible_env` dictionary using the `set_fact` tasks. The `default` filter ensures that default values are set if the variables are not provided during playbook execution.
-
-To run this playbook, you'll need to pass the `Blade` and `Fase` values using the `-e` option:
-
-```bash
-ansible-playbook playbook.yml -e "Blade=10 Fase=P"
