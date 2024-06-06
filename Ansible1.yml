@@ -21,16 +21,16 @@
       set_fact:
         vsphere_hostname: >-
           {% if blade == '7' %}
-          https://192.168.107.11
+          {{ 'https://192.168.107.11' | trim }}
           {% elif blade == '10' %}
-          https://192.168.110.11
+          {{ 'https://192.168.110.11' | trim }}
           {% endif %}
 
         vsphere_resourcepool: >-
           {% if blade == '7' %}
-          https://192.168.107.9
+          {{ 'https://192.168.107.9' | trim }}
           {% elif blade == '10' %}
-          https://192.168.110.9
+          {{ 'https://192.168.110.9' | trim }}
           {% endif %}
 
         folder_name: >-
