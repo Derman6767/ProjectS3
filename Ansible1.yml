@@ -1,4 +1,3 @@
----
 - name: Maak VM vanuit template
   hosts: localhost
   gather_facts: no
@@ -75,25 +74,109 @@
           4
           {% endif %}
 
-    # Create first VM from Ubuntu template
-    - name: Maak eerste VM (Ubuntu) vanuit Template
-      vmware_guest:
+    - name: Stel tweede IP nummer van router in op basis van keuze
+      set_fact:
+        vsphere_TweedeIPRouter: >-
+          {% if fase == 'O' %}
+          11
+          {% elif fase == 'T' %}
+          22
+          {% elif fase == 'A' %}
+          33
+          {% elif fase == 'P' %}
+          44
+          {% endif %}
+
+    - name: VLAN_ID voor DMZ gedeelte
+      set_fact:
+        vsphere_Vlan_ID_DMZ: >-
+          {% if fase == 'O' %}
+          1010
+          {% elif fase == 'T' %}
+          1020
+          {% elif fase == 'A' %}
+          1030
+          {% elif fase == 'P' %}
+          1040
+          {% endif %}
+
+    - name: VLAN_ID voor intern gedeelte
+      set_fact:
+        vsphere_Vlan_ID: >-
+          {% if fase == 'O' %}
+          1011
+          {% elif fase == 'T' %}
+          1021
+          {% elif fase == 'A' %}
+          1031
+          {% elif fase == 'P' %}
+          1041
+          {% endif %}
+
+    # Create first VM from Ubuntu template with a static IP address
+    - name: Maak eerste VM (Ubuntu) vanuit Template met statisch IP-adres
+      community.vmware.vmware_guest:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "RT-1-Blade-{{ fase }}{{ blade }}"
+        template: "ubuntu-server-template"
+        datacenter: "Datacenter"
+        folder: "/OTAP/{{ folder_name | trim }}"
+        #networks:
+        # - name: VM Network
+        #  ip: "10.{{ vsphere_TweedeIP }}.{{ blade }}.10"
+        # netmask: 255.255.255.0
+        #gateway: "10.{{ vsphere_TweedeIP }}.{{ blade }}.1"
+        datastore: "{{ vsphere_datastore | trim }}"
+        state: "poweredon"
+      register: vm_creation_result1
+
+    # Maak eerste pfsense VM van pfSense template
+    - name: Maak eerste VM (Ubuntu) vanuit Template met statisch IP-adres
+      community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
         password: "{{ vmware_password }}"
         validate_certs: False
         name: "SRV-API-{{ fase }}{{ blade }}"
-        template: "ubuntu-server-template"
+        template: "pfsense-template"
         datacenter: "Datacenter"
-        folder: "/OTAP/{{folder_name | trim}}"
+        folder: "/OTAP/{{ folder_name | trim }}"
+        #        networks:
+        #         - name: VM Network
+        #          ip: "10.{{ vsphere_TweedeIP }}.{{ blade }}.1"
+        #         netmask: 255.255.255.0
+        #        gateway: "10.{{ vsphere_TweedeIP }}.{{ blade }}.1"
         datastore: "{{ vsphere_datastore | trim }}"
         state: "poweredon"
-        wait_for_ip_address: yes
+      register:
+        vm_creation_result1
+
+        # Maak tweede pfsense VM van pfSense template
+    - name: Maak tweede pfsense vanuit Template
+      community.vmware.vmware_guest:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "RT-2-Blade-{{ fase }}{{ blade }}"
+        template: "pfsense-template"
+        datacenter: "Datacenter"
+        folder: "/OTAP/{{ folder_name | trim }}"
+        #networks:
+        # - name: VM Network
+        #  ip: "10.{{ vsphere_TweedeIP }}.{{ blade }}.2"
+        # netmask: 255.255.255.0
+        #gateway: "10.{{ vsphere_TweedeIP }}.{{ blade }}.1"
+        datastore: "{{ vsphere_datastore | trim }}"
+        state: "poweredon"
       register: vm_creation_result1
 
-    # Create second VM from Ubuntu template
-    - name: Maak tweede VM (Ubuntu) vanuit template
-      vmware_guest:
+    # Create second VM from Ubuntu template with a static IP address
+    - name: Maak tweede VM (Ubuntu) vanuit template met statisch IP-adres
+      community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
         password: "{{ vmware_password }}"
@@ -101,11 +184,12 @@
         name: "SRV-DB-{{ fase }}{{ blade }}"
         template: "ubuntu-server-template"
         datacenter: "Datacenter"
-        folder: "/OTAP/{{folder_name | trim}}"
+        folder: "/OTAP/{{ folder_name | trim }}"
+        #    networks:
+        #       - name: VM Network
+        #          ip: "10.{{ vsphere_TweedeIPRouter }}.{{ blade }}.2"
+        #           netmask: 255.255.255.0
+        #            gateway: "10.{{ vsphere_TweedeIPRouter }}.{{ blade }}.1"
         datastore: "{{ vsphere_datastore | trim }}"
         state: "poweredon"
-        wait_for_ip_address: yes
       register: vm_creation_result2
-      
-# command om uit te voeren
-# ansible-playbook playbook.yml -e "Blade=10 Fase=P"
