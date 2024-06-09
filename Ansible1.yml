@@ -87,36 +87,7 @@
           1041
           {% endif %}
 
-    - name: Maak eerste VM (Ubuntu) vanuit Template
-      community.vmware.vmware_guest:
-        hostname: "{{ vsphere_hostname | trim }}"
-        username: "{{ vmware_username }}"
-        password: "{{ vmware_password }}"
-        validate_certs: False
-        name: "SRV-API-{{ fase }}{{ blade }}"
-        template: "ubuntu-server-template"
-        datacenter: "Datacenter"
-        folder: "/OTAP/{{ folder_name | trim }}"
-        datastore: "{{ vsphere_datastore | trim }}"
-        state: "poweredon"
-      register: vm_creation_result1
-
-    - name: Configureer netwerk voor eerste VM (Ubuntu)
-      community.vmware.vmware_guest_network:
-        hostname: "{{ vsphere_hostname | trim }}"
-        username: "{{ vmware_username }}"
-        password: "{{ vmware_password }}"
-        validate_certs: False
-        name: "SRV-API-{{ fase }}{{ blade }}"
-        datacenter: "Datacenter"
-        device_type: "vmxnet3"
-        network_name: "DMZ-LAN-O"
-        state: "present"
-        start_connected: True
-        connected: True
-      register: network_result1
-
-    - name: Maak eerste pfSense VM vanuit Template
+    - name: VM1. Maak eerste pfSense VM vanuit Template
       community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -127,10 +98,69 @@
         datacenter: "Datacenter"
         folder: "/OTAP/{{ folder_name | trim }}"
         datastore: "{{ vsphere_datastore | trim }}"
-        state: "poweredon"
+        state: "poweredoff"
       register: vm_creation_result2
 
-    - name: Maak tweede pfSense VM vanuit Template
+    - name: VM1. Configureer eerste netwerk voor eerste pfSense VM
+      community.vmware.vmware_guest_network:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "RT-1-Blade-{{ fase }}{{ blade }}"
+        datacenter: "Datacenter"
+        device_type: "vmxnet3"
+        vlan_id: "1004"
+        state: "present"
+        start_connected: True
+        connected: True
+      register: network_result1
+
+    - name: VM1. Configureer tweede netwerk voor eerste pfSense VM
+      community.vmware.vmware_guest_network:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "RT-1-Blade-{{ fase }}{{ blade }}"
+        datacenter: "Datacenter"
+        device_type: "vmxnet3"
+        vlan_id: "{{ vsphere_Vlan_ID_DMZ }}"
+        state: "present"
+        start_connected: True
+        connected: True
+      register: network_result1
+
+    - name: VM2. Maak eerste VM (Ubuntu) vanuit Template
+      community.vmware.vmware_guest:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "SRV-API-{{ fase }}{{ blade }}"
+        template: "ubuntu-server-template-2"
+        datacenter: "Datacenter"
+        folder: "/OTAP/{{ folder_name | trim }}"
+        datastore: "{{ vsphere_datastore | trim }}"
+        state: "poweredoff"
+      register: vm_creation_result1
+
+    - name: VM2. Configureer netwerk voor API-SRV VM (Ubuntu)
+      community.vmware.vmware_guest_network:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "SRV-API-{{ fase }}{{ blade }}"
+        datacenter: "Datacenter"
+        device_type: "vmxnet3"
+        vlan_id: "{{ vsphere_Vlan_ID_DMZ }}"
+        state: "present"
+        start_connected: True
+        connected: True
+      register: network_result1
+
+    - name: VM3. Maak tweede pfSense VM vanuit Template
       community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -141,24 +171,54 @@
         datacenter: "Datacenter"
         folder: "/OTAP/{{ folder_name | trim }}"
         datastore: "{{ vsphere_datastore | trim }}"
-        state: "poweredon"
+        state: "poweredoff"
       register: vm_creation_result3
 
-    - name: Maak tweede VM (Ubuntu) vanuit Template
+    - name: VM3. Configureer eerste netwerk voor eerste pfSense VM
+      community.vmware.vmware_guest_network:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "RT-2-Blade-{{ fase }}{{ blade }}"
+        datacenter: "Datacenter"
+        device_type: "vmxnet3"
+        vlan_id: "{{ vsphere_Vlan_ID_DMZ }}"
+        state: "present"
+        start_connected: True
+        connected: True
+      register: network_result1
+
+    - name: VM3. Configureer tweede netwerk voor eerste pfSense VM
+      community.vmware.vmware_guest_network:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "RT-2-Blade-{{ fase }}{{ blade }}"
+        datacenter: "Datacenter"
+        device_type: "vmxnet3"
+        vlan_id: "{{ vsphere_Vlan_ID }}"
+        state: "present"
+        start_connected: True
+        connected: True
+      register: network_result1
+
+    - name: VM4. Maak tweede VM (Database)
       community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
         password: "{{ vmware_password }}"
         validate_certs: False
         name: "SRV-DB-{{ fase }}{{ blade }}"
-        template: "ubuntu-server-template"
+        template: "ubuntu-server-template-2"
         datacenter: "Datacenter"
         folder: "/OTAP/{{ folder_name | trim }}"
         datastore: "{{ vsphere_datastore | trim }}"
-        state: "poweredon"
+        state: "poweredoff"
       register: vm_creation_result4
 
-    - name: Configureer netwerk voor tweede VM (Ubuntu)
+    - name: VM4. comfigureer Netwerk DB server
       community.vmware.vmware_guest_network:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -171,4 +231,4 @@
         state: "present"
         start_connected: True
         connected: True
-      register: network_result4
+      register: network_result1
