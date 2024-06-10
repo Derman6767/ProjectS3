@@ -125,7 +125,7 @@
         name: "RT-1-Blade-{{ fase }}{{ blade }}"
         datacenter: "Datacenter"
         device_type: "vmxnet3"
-        vlan_id: "{{ vsphere_Vlan_ID_DMZ }}"
+        vlan_id: "1002"
         state: "present"
         start_connected: True
         connected: True
@@ -183,7 +183,7 @@
         name: "RT-2-Blade-{{ fase }}{{ blade }}"
         datacenter: "Datacenter"
         device_type: "vmxnet3"
-        vlan_id: "{{ vsphere_Vlan_ID_DMZ }}"
+        vlan_id: "1002"
         state: "present"
         start_connected: True
         connected: True
