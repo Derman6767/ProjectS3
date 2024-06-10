@@ -94,7 +94,7 @@
         password: "{{ vmware_password }}"
         validate_certs: False
         name: "RT-1-Blade-{{ fase }}{{ blade }}"
-        template: "pfsense-template"
+        template: "pfsense-template2"
         datacenter: "Datacenter"
         folder: "/OTAP/{{ folder_name | trim }}"
         datastore: "{{ vsphere_datastore | trim }}"
@@ -167,7 +167,7 @@
         password: "{{ vmware_password }}"
         validate_certs: False
         name: "RT-2-Blade-{{ fase }}{{ blade }}"
-        template: "pfsense-template"
+        template: "pfsense-template2"
         datacenter: "Datacenter"
         folder: "/OTAP/{{ folder_name | trim }}"
         datastore: "{{ vsphere_datastore | trim }}"
