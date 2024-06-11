@@ -5,7 +5,7 @@
 
   vars_files:
     - credentials.yml
-
+    
   vars:
     blade: "{{ Blade | default('') }}"
     fase: "{{ Fase | default('') }}"
@@ -99,7 +99,7 @@
         folder: "/OTAP/{{ folder_name | trim }}"
         datastore: "{{ vsphere_datastore | trim }}"
         state: "poweredoff"
-      register: vm_creation_result2
+      register: vm_creation_result1
 
     - name: VM1. Configureer eerste netwerk voor eerste pfSense VM
       community.vmware.vmware_guest_network:
@@ -129,7 +129,7 @@
         state: "present"
         start_connected: True
         connected: True
-      register: network_result1
+      register: network_result2
 
     - name: VM2. Maak eerste VM (Ubuntu) vanuit Template
       community.vmware.vmware_guest:
@@ -143,7 +143,7 @@
         folder: "/OTAP/{{ folder_name | trim }}"
         datastore: "{{ vsphere_datastore | trim }}"
         state: "poweredoff"
-      register: vm_creation_result1
+      register: vm_creation_result2
 
     - name: VM2. Configureer netwerk voor API-SRV VM (Ubuntu)
       community.vmware.vmware_guest_network:
@@ -158,7 +158,7 @@
         state: "present"
         start_connected: True
         connected: True
-      register: network_result1
+      register: network_result3
 
     - name: VM3. Maak tweede pfSense VM vanuit Template
       community.vmware.vmware_guest:
@@ -174,7 +174,7 @@
         state: "poweredoff"
       register: vm_creation_result3
 
-    - name: VM3. Configureer eerste netwerk voor eerste pfSense VM
+    - name: VM3. Configureer eerste netwerk voor tweede pfSense VM
       community.vmware.vmware_guest_network:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -187,9 +187,9 @@
         state: "present"
         start_connected: True
         connected: True
-      register: network_result1
+      register: network_result4
 
-    - name: VM3. Configureer tweede netwerk voor eerste pfSense VM
+    - name: VM3. Configureer tweede netwerk voor tweede pfSense VM
       community.vmware.vmware_guest_network:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -202,7 +202,7 @@
         state: "present"
         start_connected: True
         connected: True
-      register: network_result1
+      register: network_result5
 
     - name: VM4. Maak tweede VM (Database)
       community.vmware.vmware_guest:
@@ -218,7 +218,7 @@
         state: "poweredoff"
       register: vm_creation_result4
 
-    - name: VM4. Configureer Netwerk DB server
+    - name: VM4. Configureer netwerk DB server
       community.vmware.vmware_guest_network:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -231,4 +231,45 @@
         state: "present"
         start_connected: True
         connected: True
-      register: network_result1
+      register: network_result6
+
+    - name: VM1. Zet eerste pfSense VM aan
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "RT-1-Blade-{{ fase }}{{ blade }}"
+        state: powered-on
+      when: vm_creation_result1 is defined and not vm_creation_result1.failed
+
+    - name: VM2. Zet eerste Ubuntu VM aan
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "SRV-API-{{ fase }}{{ blade }}"
+        state: powered-on
+      when: vm_creation_result2 is defined and not vm_creation_result2.failed
+
+    - name: VM3. Zet tweede pfSense VM aan
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "RT-2-Blade-{{ fase }}{{ blade }}"
+        state: powered-on
+      when: vm_creation_result3 is defined and not vm_creation_result3.failed
+
+    - name: VM4. Zet tweede Ubuntu VM aan
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ vsphere_hostname | trim }}"
+        username: "{{ vmware_username }}"
+        password: "{{ vmware_password }}"
+        validate_certs: False
+        name: "SRV-DB-{{ fase }}{{ blade }}"
+        state: powered-on
+      when: vm_creation_result4 is defined and not vm_creation_result4.failed
+
