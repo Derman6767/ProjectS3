@@ -1,0 +1,1 @@
+ansible-playbook Ansible1.yml -e "Blade=10 Fase=O"
