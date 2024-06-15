@@ -87,7 +87,7 @@
           1041
           {% endif %}
 
-    - name: VM1. Maak eerste pfSense VM vanuit Template
+    - name: VM1. Maak eerste pfSense VM vanuit Template (RT1)
       community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -101,7 +101,7 @@
         state: "poweredoff"
       register: vm_creation_result1
 
-    - name: VM1. Configureer eerste netwerk voor eerste pfSense VM
+    - name: VM1. Configureer eerste netwerk voor eerste pfSense VM (RT1)
       community.vmware.vmware_guest_network:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -116,7 +116,7 @@
         connected: True
       register: network_result1
 
-    - name: VM1. Configureer tweede netwerk voor eerste pfSense VM
+    - name: VM1. Configureer tweede netwerk voor eerste pfSense VM (RT1)
       community.vmware.vmware_guest_network:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -131,7 +131,7 @@
         connected: True
       register: network_result2
 
-    - name: VM2. Maak eerste VM (Ubuntu) vanuit Template
+    - name: VM2. Maak eerste Ubuntu VM (API-SRV)
       community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -160,7 +160,7 @@
         connected: True
       register: network_result3
 
-    - name: VM3. Maak tweede pfSense VM vanuit Template
+    - name: VM3. Maak tweede pfSense VM vanuit Template (RT2)
       community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -174,7 +174,7 @@
         state: "poweredoff"
       register: vm_creation_result3
 
-    - name: VM3. Configureer eerste netwerk voor tweede pfSense VM
+    - name: VM3. Configureer eerste netwerk voor tweede pfSense VM (RT2)
       community.vmware.vmware_guest_network:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -189,7 +189,7 @@
         connected: True
       register: network_result4
 
-    - name: VM3. Configureer tweede netwerk voor tweede pfSense VM
+    - name: VM3. Configureer tweede netwerk voor tweede pfSense VM (RT2)
       community.vmware.vmware_guest_network:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -204,7 +204,7 @@
         connected: True
       register: network_result5
 
-    - name: VM4. Maak tweede VM (Database)
+    - name: VM4. Maak 2e Ubuntu VM (DB-SRV)
       community.vmware.vmware_guest:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -243,7 +243,7 @@
         state: powered-on
       when: vm_creation_result1 is defined and not vm_creation_result1.failed
 
-    - name: VM2. Zet eerste Ubuntu VM aan
+    - name: VM2. Zet API server aan
       community.vmware.vmware_guest_powerstate:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -253,7 +253,7 @@
         state: powered-on
       when: vm_creation_result2 is defined and not vm_creation_result2.failed
 
-    - name: VM3. Zet tweede pfSense VM aan
+    - name: VM3. Zet tweede router RT2 aan
       community.vmware.vmware_guest_powerstate:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
@@ -263,7 +263,7 @@
         state: powered-on
       when: vm_creation_result3 is defined and not vm_creation_result3.failed
 
-    - name: VM4. Zet tweede Ubuntu VM aan
+    - name: VM4. Zet database server aan
       community.vmware.vmware_guest_powerstate:
         hostname: "{{ vsphere_hostname | trim }}"
         username: "{{ vmware_username }}"
